@@ -1,0 +1,2 @@
+# sole
+Simple Outline Editor

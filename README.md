@@ -16,3 +16,22 @@ What next? I guess we should upload sole.c and DEMO.OL and see where we go from 
 I (LucasGSC) would like advice on language (free as in freedom, multiplatform, multilanguage, compilable).
 Could we eventually run a crowdfunding process to help coders get to the first running instance in less than 15 years?
 I think the sequence could be: viewer, basic editor, basic maxthink-like functionality (MLF), extended MLF, dream on.
+
+## Requirements
+
+ * ncurses
+ 
+## Compile
+
+~~~
+$ gcc -lncurses -osole sole.c
+~~~
+
+## Usage
+ 
+Use the next keys to move the cursor:
+
+ * h move left
+ * j move down
+ * k move right
+ * u move up

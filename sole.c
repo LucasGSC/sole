@@ -25,8 +25,9 @@
 ///// INCLUDE as little as possible
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include "conio.h"
+#include <curses.h>
 
 ////////////////////////////////////////////////////////////
 
@@ -96,6 +97,39 @@ FILE *fileout;
 
 ////////////////////////////////////////////////////////////
 
+///// CONIO
+
+void clrscr()
+{
+ clear();
+}
+
+void clreol()
+{
+ clrtoeol();
+}
+
+int gotoxy(int x, int y)
+{
+ move(y - 1, x - 1);
+ return 0;
+}
+
+int cprintf(char *fmt, ...)
+{
+ va_list arg; 
+ va_start(arg, fmt);
+
+ int i = vwprintw(stdscr, fmt, arg);
+
+ va_end(arg);
+
+ refresh();
+ return i;
+}
+
+////////////////////////////////////////////////////////////
+
 ///// MAIN
 
 int main(void)
@@ -137,13 +171,15 @@ char *getfname(char *t, int x, int y);
 init()
 {
  int ch;
+ initscr();
  clrscr();
- printf("sole is a Small OutLine Editor, written in C by a non programmer.");
- printf("\nIt is distributed under the GNU General Public Licence.");
- printf("\nCurrently it doesn't do much, really - you can always help.");
- printf("\nAuthor  : lucas@comtf.es");
- printf("\nWebpage : http://www.gulic.org/copensar/index.html");
- printf("\n\nPress any key to start.\n");
+ printw("sole is a Small OutLine Editor, written in C by a non programmer.");
+ printw("\nIt is distributed under the GNU General Public Licence.");
+ printw("\nCurrently it doesn't do much, really - you can always help.");
+ printw("\nAuthor  : lucas@comtf.es");
+ printw("\nWebpage : http://www.gulic.org/copensar/index.html");
+ printw("\n\nPress any key to start.\n");
+ refresh();
  ch=getch();
 }
 
@@ -151,9 +187,10 @@ showhlp()
 {
  char ch;
  clrscr();
- printf("Press one of the available keys to navigate, load, edit, save,");
- printf("\nand so on. The letters in lower case are not implemented yet.");
- printf("\n\nPress any key to go back to the current outline, if any.\n");
+ printw("Press one of the available keys to navigate, load, edit, save,");
+ printw("\nand so on. The letters in lower case are not implemented yet.");
+ printw("\n\nPress any key to go back to the current outline, if any.\n");
+ refresh();
  ch=getch();
  osTree();
 }
@@ -164,7 +201,10 @@ dblchk()
 
 salir(){}  //means "go out" in Spanish
 
-final(){}
+final()
+{
+ endwin();
+}
 
 ///// MENU
 int menu()
@@ -175,7 +215,7 @@ int menu()
 
  do {
     gotoxy(1,23); clreol(); gotoxy(1,23);
-    printf("%s%s ",TxtMnu1,TxtMnu2);
+    cprintf("%s%s ",TxtMnu1,TxtMnu2);
     ch=toupper(getch());
    } while (
             (!chinstr(ch,"RWEXADLCYQN"))
@@ -184,7 +224,7 @@ int menu()
          && (ch!=LEFTARROW)
          && (ch!=RIGHTARROW)
          );
- printf("\n");
+ cprintf("\n");
  return ch;
 } // menu
 
@@ -255,7 +295,7 @@ idTree()
                 //and suggest options: abort(=new or old) or incomplete
         }
     } else {
-        printf("CAN'T READ");
+        cprintf("CAN'T READ");
     };
 cur --; //correct excesive step
 //show what I read, just testing:
@@ -306,14 +346,14 @@ int i;
 
 clrscr();
 gotoxy(1,1);
-printf("TITULO : %s",node[node[cur].dad].text);
+cprintf("TITULO : %s",node[node[cur].dad].text);
 for (i=1;i<node[node[cur].dad].nsons+1;i++) {
      gotoxy(1,i+2);
-     printf("%3i:   %s",i,node[node[node[cur].dad].sons[i]].text);
+     cprintf("%3i:   %s",i,node[node[node[cur].dad].sons[i]].text);
      gotoxy(5,i+2);
-     if (node[node[node[cur].dad].sons[i]].nsons>0) printf("*");
+     if (node[node[node[cur].dad].sons[i]].nsons>0) cprintf("*");
      gotoxy(6,i+2);
-     if (i==curson) printf(">");
+     if (i==curson) cprintf(">");
      }
 }
 
@@ -324,17 +364,17 @@ int soni, line;
 
 clrscr();
 gotoxy(1,SCRTOP);
-printf("%s",node[node[cur].dad].text);
+cprintf("%s",node[node[cur].dad].text);
 line = SCRTOP + 2;  //2 should become a defined constant
 soni = topson;
 title = node[cur].dad;
 do {
    gotoxy(1,line);
-   printf("%3i:   %s",soni,node[node[title].sons[soni]].text);
+   cprintf("%3i:   %s",soni,node[node[title].sons[soni]].text);
    gotoxy(5,line);
-   if (node[node[title].sons[soni]].nsons>0) printf("*");
+   if (node[node[title].sons[soni]].nsons>0) cprintf("*");
    gotoxy(6,line);
-   if (soni==curson) printf(">");
+   if (soni==curson) cprintf(">");
    line ++;
    soni ++;
 } while ((line<SCRBOT)
@@ -403,10 +443,10 @@ addNode()
 
  do {
     gotoxy(1,23); clreol(); gotoxy(1,23);
-    printf("Where to add: %s ",TxtMnu);
+    cprintf("Where to add: %s ",TxtMnu);
     ch=toupper(getch());
  } while (!chinstr(ch,"BASC"));
- printf("\n");
+ cprintf("\n");
  switch(ch){
      case 'B' : addBrother(+0); break;
      case 'A' : addBrother(+1); break;
@@ -546,9 +586,9 @@ editnode()
     posinbuf=0;
 
     gotoxy(curx,y);
-    printf("%s",buf);
+    cprintf("%s",buf);
     gotoxy(curx,y);
-    printf("%c",buf[0]);
+    cprintf("%c",buf[0]);
     do
     {
         ch = getch();
@@ -572,7 +612,7 @@ editnode()
                  if (chinstr(ch,LEGALCHARS)) {
                     buf[posinbuf]=ch;
                     gotoxy(curx,y);
-                    printf("%c",ch);
+                    cprintf("%c",ch);
                     //then do as in right arrow
                     if (curx<(lastx+1)) {
                        curx++; posinbuf++;
@@ -589,7 +629,7 @@ editnode()
         }
     } while ((ch!=ASCESC)&&(ch!=ASCCR));
     if (ch==ASCCR) strcpy(node[cur].text,buf);
-    gotoxy(minx,y); printf("%s",node[cur].text);
+    gotoxy(minx,y); cprintf("%s",node[cur].text);
 }
 
 int it_key()
@@ -608,7 +648,7 @@ char *getfname(char *t, int x, int y)
 
     buffer=(char*) malloc(MAXFILENAME + 1);
     gotoxy(x,y);
-    printf(t);
+    cprintf("%s", t);
     scanf("%s",buffer);
     return buffer;
 }
@@ -626,9 +666,9 @@ editroot()
     posinbuf=0;
 
     gotoxy(curx,y);
-    printf("%s",buf);
+    cprintf("%s",buf);
     gotoxy(curx,y);
-    printf("%c",buf[0]);
+    cprintf("%c",buf[0]);
     do
     {
         ch = getch();
@@ -652,7 +692,7 @@ editroot()
                  if (chinstr(ch,LEGALCHARS)) {
                     buf[posinbuf]=ch;
                     gotoxy(curx,y);
-                    printf("%c",ch);
+                    cprintf("%c",ch);
                     //then do as in right arrow
                     if (curx<(lastx+1)) {
                        curx++; posinbuf++;
